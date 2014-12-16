@@ -6,22 +6,23 @@ clc;
 %Path to save files (select your own)
 my_path='/home/amjed/Documents/Gproject/workspace/data/WSDB_DATA';
 %%
-num_of_steps = [1 2]% 4 8 16 32 64 128 256]; 
+num_of_steps = [1 2 4 8]% 16 32 64 128 256]; 
 distance_divider =  num_of_steps(length(num_of_steps));
 fileId = 0 ;
-num_of_query_per_location = 1;
+num_of_query_per_location = 10;
 %%
     %The data stored in the file as longitude latitude longitude latitude
     format long;
-    long_lat = load('long_lat.txt');
-    [r ,c] = size(long_lat);
+    long_lat_ofcom = load('long_lat_ofcom.txt');
+    [r ,c] = size(long_lat_ofcom);
     delay_ofcom_vec = [];
+  
 for k=1:r    
         %Location data    
-        long_start= long_lat(k , 1)
-        lat_start=long_lat(k , 2)
-        long_end=long_lat(k , 3)
-        lat_end=long_lat(k , 4)
+        long_start= long_lat_ofcom(k , 1)
+        lat_start=long_lat_ofcom(k , 2)
+        long_end=long_lat_ofcom(k , 3)
+        lat_end=long_lat_ofcom(k , 4)
 
 
         %collect the delay 
@@ -41,8 +42,7 @@ for k=1:r
 
                     % writing the response to a file
                     if error_ofcom_tmp==0
-                        var_name_txt=strcat(num2str(fileId));
-                        var_name_zip=strcat(num2str(fileId));     
+                        var_name_txt=strcat(num2str(fileId));    
                         dlmwrite(['txt/',var_name_txt,'.txt'],msg_ofcom,'');
                     end
                 end 
