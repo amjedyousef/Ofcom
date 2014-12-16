@@ -16,17 +16,12 @@ query_generator_interval...
 cmnd=['/usr/bin/curl -X POST ',server_name,' -H ',text_coding,' --data-binary @',my_path,'/ofcom/ofcom.json -w %{time_total}'];
 [status,response]=system(cmnd);
     
-    remove_first_extra_error_lines = strfind(response,'{');
-    response = response(remove_first_extra_error_lines:end);
-    disp(response)
+%     remove_first_extra_error_lines = findstr(response,'[');
+%     response = response((remove_first_extra_error_lines(1)):end);
+%     disp(response)
    
-    end_query_str='"BTWhiteSpacePilotV1-2013"';
-    pos_end_query_str=findstr(response,end_query_str);  
-    length_end_query_str=length(end_query_str)+23;
-    response(pos_end_query_str(end)+length_end_query_str:end);
-    delay=str2num(response(pos_end_query_str(end)+length_end_query_str:end));     
-    response(pos_end_query_str(end)+length_end_query_str:end)=[];
-
+    pos_end_query_str=findstr(response,']');
+    delay=str2num(response((pos_end_query_str(end)+1):end));     
     
 %system('rm ofcom.json');
 

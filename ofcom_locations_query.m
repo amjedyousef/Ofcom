@@ -6,10 +6,10 @@ clc;
 %Path to save files (select your own)
 my_path='/home/amjed/Documents/Gproject/workspace/data/WSDB_DATA';
 %%
-num_of_steps = [1 2 4 8]% 16 32 64 128 256]; 
+num_of_steps = [1 2 4 8 16 32  64]% 128 256]; 
 distance_divider =  num_of_steps(length(num_of_steps));
 fileId = 0 ;
-num_of_query_per_location = 10;
+num_of_query_per_location = 7;
 %%
     %The data stored in the file as longitude latitude longitude latitude
     format long;
@@ -39,7 +39,7 @@ for k=1:r
                         lat_start ,lat_end ,long_start,long_end,num_of_steps(i) , distance_divider , my_path );
 
                     delay_temp = [delay_temp  delay_ofcom_tmp];
-
+                    raw_delay(i,j) = delay_ofcom_tmp;
                     % writing the response to a file
                     if error_ofcom_tmp==0
                         var_name_txt=strcat(num2str(fileId));    
@@ -60,8 +60,12 @@ for k=1:r
             ylabel('Delay (sec)');  
             delay_ofcom_vec = [delay_ofcom_vec delay_ofcom];
             delay_ofcom = []; % reset required for the next step
+            
 end
 legend('10km')%,'10km','10km','50km','across US')
+for i=1:length(num_of_steps) 
+    plot(num_of_steps(i) , raw_delay(i,:), 'r*');
+end
 hold off
 
 %%
