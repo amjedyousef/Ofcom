@@ -1,4 +1,6 @@
-function [response,delay,error]=database_connect_ofcom(request_type,latitude,longitude,height,my_path,counter)
+function [response , delay , error] =  multi_location_query_ofcom_interval...
+    ( latitude_start, latitude_end, longitude_start,...
+    longitude_end ,num_of_steps, distance_divider, my_path)
 
 error=false; %Default error value
 delay=[]; %Default delay value
@@ -6,12 +8,10 @@ delay=[]; %Default delay value
 server_name='https://tvwsdb.broadbandappstestbed.com/json.rpc';
 text_coding='"Content-Type: application/json "';
 
-device_type='"MODE_2"'; %Types of TVWS device: http://en.wikipedia.org/wiki/TV-band_device
-
-
-ofcom_query(request_type,device_type,latitude,longitude,height);
-
-my_path=regexprep(my_path,' ','\\ ');
+%%
+query_generator_interval...
+    (request_type,latitude_start,latitude_end ,...
+    longitude_start, longitude_end ,num_of_steps,distance_divider, my_path)
 
 cmnd=['/usr/bin/curl -X POST ',server_name,' -H ',text_coding,' --data-binary @',my_path,'/ofcom.json -w %{time_total}'];
 [status,response]=system(cmnd);
@@ -21,26 +21,43 @@ cmnd=['/usr/bin/curl -X POST ',server_name,' -H ',text_coding,' --data-binary @'
    
     end_query_str='"BTWhiteSpacePilotV1-2013"';
     pos_end_query_str=findstr(response,end_query_str);  
-    disp('pos_end_query_str -->');
-    disp(pos_end_query_str);
-    
-    length_end_query_str=length(end_query_str)+22;
+    length_end_query_str=length(end_query_str)+23;
     response(pos_end_query_str+length_end_query_str:end);
-    
-    disp('response(pos_end_query_str+length_end_query_str:end); -->');
-    disp(response(pos_end_query_str+length_end_query_str:end));
-    
-    
-    
     delay=str2num(response(pos_end_query_str+length_end_query_str:end));     
     response(pos_end_query_str+length_end_query_str:end)=[];
-    disp('DCO delay -->');
-    disp(delay);
+
     
 system('rm ofcom.json');
 
-function ofcom_query(request_type,device_type,latitude,longitude,height)
+end
 
+function  query_generator_interval...
+    (request_type,latitude_start,latitude_end ,...
+    longitude_start, longitude_end ,num_of_steps,distance_divider, my_path)
+%This function will generate the json array requests along a line between
+%two points
+
+% Dividing the distance into segmets to be queried gradually 
+
+longitude = linspace(longitude_start,longitude_end , distance_divider);
+latitude = linspace(latitude_start,latitude_end , distance_divider);
+
+% This is need it in order to dynamically add  and remove the comma to
+% separate json object correctly 
+    if num_of_steps > 1
+        comma = ',';
+    else
+        comma = '';
+    end
+
+ cd([my_path,'/ofcom']);
+%To start the json array
+dlmwrite('ofcom.json','[','delimiter','');
+
+for i = 1:num_of_steps 
+    if i == num_of_steps
+        comma='';
+    end
 request=['{"jsonrpc": "2.0",',...
     '"method": "spectrum.paws.getSpectrum",',...
     '"params": {',...
@@ -72,6 +89,10 @@ request=['{"jsonrpc": "2.0",',...
          '"antenna": { ',...
           '"height": 7.5, ',...
          '"heightType": "AGL" }, ',...
-    '},"id": "123456789"}'];
+    '},"id": "123456789"}',comma];
 
-dlmwrite('ofcom.json',request,'');
+    dlmwrite('ofcom.json',request,'-append','delimiter','');
+end
+%close the json array
+dlmwrite('ofcom.json',']','-append','delimiter','');
+end
